@@ -34,12 +34,21 @@
         session_unset();
         session_destroy();
       }
-      if(isset($_SESSION) and isset($_SESSION['name'])) {
-        echo "<div>
-        <p>Name: {$_SESSION['name']}</p>
-        <p>Email: {$_SESSION['email']}</p>
-        </div>";
-      } else {
+      if(isset($_SESSION) and isset($_SESSION['id'])) {
+        // connect to the database
+        include('./config/db_connect.php');
+        $id = $_SESSION['id'];
+        $verify_query = mysqli_query($conn, "select * from users where id=$id");
+        if(mysqli_num_rows($verify_query)){
+          $row = mysqli_fetch_assoc($verify_query);
+          echo "<div>
+                <p>Name: {$row['name']}</p>
+                <p>Email: {$row['email']}</p>
+                </div>";    
+        }else {
+          header('Location: signin.html');
+        }
+      }else {
         header('Location: signin.html');
       }
     ?>

@@ -1,12 +1,6 @@
 <?php
  // connect to the database
-  $conn = mysqli_connect('localhost','raunak','raunak@php','users-php');
-  // check connection status
-  if(!$conn) {
-    echo 'Connection failed: ' . mysqli_connect_error();
-    exit();
-  }
-  session_start();
+  include('./config/db_connect.php');
   if(isset($_POST['action']) && $_POST['action'] == 'signin') {
     $data = new stdClass();
     $email = mysqli_real_escape_string($conn, trim($_POST['email']));
@@ -17,8 +11,7 @@
       $data->err = "Fields Cannot be Empty!";
       $data->status = 400;
       $myJSON = json_encode($data);
-      echo $myJSON;
-      exit();
+      exit($myJSON);
     }
     
     // verify unique email
@@ -27,21 +20,21 @@
       $data->err = "Incorrect Credentials!";
       $data->status = 400;
       $myJSON = json_encode($data);
-      echo $myJSON;
+      exit($myJSON);
     } else {
       $row = mysqli_fetch_assoc($verify_query);
       if(!password_verify($password, $row['password'])) {
         $data->err = "Incorrect Password!";
         $data->status = 400;
         $myJSON = json_encode($data);
-        echo $myJSON;
+        exit($myJSON);
       }else {
-        $_SESSION['name'] = $row['name'];
-        $_SESSION['email'] = $row['email'];
+        session_start();
+        $_SESSION['id'] = $row['id'];
         $data->success = "Successfully Signed in!";
         $data->status = 200;
         $myJSON = json_encode($data);
-        echo $myJSON;
+        exit($myJSON);
       }
     }
   } else if(isset($_POST['action']) && $_POST['action'] == 'signup') {
@@ -56,8 +49,7 @@
       $data->err = "Fields Cannot be Empty!";
       $data->status = 400;
       $myJSON = json_encode($data);
-      echo $myJSON;
-      exit();
+      exit($myJSON);
     }
 
     // verify unique email
@@ -66,29 +58,26 @@
       $data->err = "Email already registered!";
       $data->status = 400;
       $myJSON = json_encode($data);
-      echo $myJSON;
-      exit();
+      exit($myJSON);
     } elseif(strlen($password)<8) {
       $data->err = "Password must be at least 8 characters!";
       $data->status = 400;
       $myJSON = json_encode($data);
-      echo $myJSON;
-      exit();
+      exit($myJSON);
     } elseif($password !== $confirmPassword) {
       $data->err = "Passwords not matching!";
       $data->status = 400;
       $myJSON = json_encode($data);
-      echo $myJSON;
-      exit();
+      exit($myJSON);
     } else {
       $hash = password_hash($password, PASSWORD_DEFAULT);
       mysqli_query($conn, "insert into users(name, email, password) values('$name', '$email', '$hash')");
-      $_SESSION["name"] = $name;
-      $_SESSION["email"] = $email;
+      session_start();
+      $_SESSION["id"] = mysqli_insert_id($conn);
       $data->success = "Successfully Signed up!";
       $data->status = 200;
       $myJSON = json_encode($data);
-      echo $myJSON;
+      exit($myJSON);
     }
   }
 ?>
